@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checker Inception - Guide d'Évaluation</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+
+        .tabs {
+            display: flex;
+            background: #f8f9fa;
+            border-bottom: 2px solid #e0e0e0;
+            overflow-x: auto;
+        }
+
+        .tab {
+            padding: 15px 25px;
+            cursor: pointer;
+            border: none;
+            background: none;
+            font-size: 1em;
+            font-weight: 600;
+            color: #555;
+            transition: all 0.3s;
+            white-space: nowrap;
+        }
+
+        .tab:hover {
+            background: #e9ecef;
+        }
+
+        .tab.active {
+            background: white;
+            color: #667eea;
+            border-bottom: 3px solid #667eea;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .section {
+            display: none;
+            animation: fadeIn 0.5s;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .check-item {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+
+        .check-item:hover {
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transform: translateX(5px);
+        }
+
+        .check-item h3 {
+            color: #1e3c72;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+        }
+
+        .check-item h3::before {
+            content: "✓";
+            background: #667eea;
+            color: white;
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 10px;
+            font-size: 0.8em;
+        }
+
+        .command {
+            background: #2d3748;
+            color: #68d391;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            margin: 10px 0;
+            overflow-x: auto;
+            position: relative;
+        }
+
+        .command::before {
+            content: "$ ";
+            color: #90cdf4;
+        }
+
+        .result {
+            background: #edf2f7;
+            border-left: 4px solid #48bb78;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+        }
+
+        .result h4 {
+            color: #2d3748;
+            margin-bottom: 8px;
+        }
+
+        .warning {
+            background: #fff5f5;
+            border-left: 4px solid #fc8181;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            color: #742a2a;
+        }
+
+        .warning::before {
+            content: "⚠️ ";
+            font-size: 1.2em;
+        }
+
+        .success {
+            background: #f0fff4;
+            border-left: 4px solid #48bb78;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            color: #22543d;
+        }
+
+        .code-block {
+            background: #1a202c;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 15px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            line-height: 1.6;
+        }
+
+        .explanation {
+            background: #ebf8ff;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            border-left: 4px solid #4299e1;
+        }
+
+        .explanation strong {
+            color: #2c5282;
+        }
+
+        ul {
+            margin-left: 20px;
+            margin-top: 10px;
+        }
+
+        li {
+            margin: 8px 0;
+            line-height: 1.6;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 5px 12px;
+            background: #667eea;
+            color: white;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+
+        .badge.critical {
+            background: #fc8181;
+        }
+
+        .footer {
+            background: #2d3748;
+            color: white;
+            text-align: center;
+            padding: 20px;
+            margin-top: 30px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🐳 Checker Inception</h1>
+            <p>Guide d'évaluation complet pour votre projet Inception</p>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" onclick="showSection(0)">📋 Préparation</button>
+            <button class="tab" onclick="showSection(1)">🗂️ Structure</button>
+            <button class="tab" onclick="showSection(2)">🐋 Docker</button>
+            <button class="tab" onclick="showSection(3)">🌐 NGINX</button>
+            <button class="tab" onclick="showSection(4)">📝 WordPress</button>
+            <button class="tab" onclick="showSection(5)">💾 MariaDB</button>
+            <button class="tab" onclick="showSection(6)">🔄 Persistence</button>
+        </div>
+
+        <div class="content">
+            <!-- Section 0: Préparation -->
+            <div class="section active">
+                <h2 style="color: #1e3c72; margin-bottom: 20px;">Préparation de l'Évaluation</h2>
+                
+                <div class="check-item">
+                    <h3>Nettoyage Docker</h3>
+                    <p>Avant de commencer, exécutez cette commande pour nettoyer Docker :</p>
+                    <div class="command">docker stop $(docker ps -qa); docker rm $(docker ps -qa); docker rmi -f $(docker images -qa); docker volume rm $(docker volume ls -q); docker network rm $(docker network ls -q) 2>/dev/null</div>
+                    <div class="result">
+                        <h4>Résultat attendu :</h4>
+                        <p>Tous les conteneurs, images, volumes et réseaux Docker sont supprimés.</p>
+                    </div>
+                </div>
+
+                <div class="check-item">
+                    <h3>Questions Théoriques<span class="badge critical">OBLIGATOIRE</span></h3>
+                    <div class="explanation">
+                        <strong>1. Comment fonctionnent Docker et docker-compose ?</strong>
+                        <ul>
+                            <li><strong>Docker :</strong> Plateforme de conteneurisation qui permet d'empaqueter une application avec toutes ses dépendances dans un conteneur isolé</li>
+                            <li><strong>docker-compose :</strong> Outil pour définir et gérer des applications multi-conteneurs via un fichier YAML</li>
+                        </ul>
+
+                        <strong>2. Différence entre image Docker avec et sans docker-compose ?</strong>
+                        <ul>
+                            <li><strong>Sans compose :</strong> Gestion manuelle de chaque conteneur avec des commandes docker run</li>
+                            <li><strong>Avec compose :</strong> Orchestration automatique de plusieurs conteneurs, gestion des réseaux et volumes centralisée</li>
+                        </ul>
+
+                        <strong>3. Avantages de Docker vs VMs ?</strong>
+                        <ul>
+                            <li>Plus léger (partage le kernel de l'hôte)</li>
+                            <li>Démarrage quasi instantané</li>
+                            <li>Moins de ressources consommées</li>
+                            <li>Portabilité accrue</li>
+                        </ul>
+
+                        <strong>4. Pertinence de la structure du projet ?</strong>
+                        <ul>
+                            <li>Séparation claire des services (NGINX, WordPress, MariaDB)</li>
+                            <li>Dockerfiles isolés pour chaque service</li>
+                            <li>Configuration centralisée dans docker-compose.yml</li>
+                            <li>Volumes pour la persistance des données</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="check-item">
+                    <h3>Vérifications du fichier /etc/hosts</h3>
+                    <div class="command">cat /etc/hosts</div>
+                    <div class="result">
+                        <h4>Doit contenir :</h4>
+                        <div class="code-block">127.0.0.1    login.42.fr</div>
+                        <p>Remplacez "login" par votre login 42.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 1: Structure -->
+            <div class="section">
+                <h2 style="color: #1e3c72; margin-bottom: 20px;">Structure du Projet</h2>
+
+                <div class="check-item">
+                    <h3>Vérifier le dossier srcs<span class="badge critical">OBLIGATOIRE</span></h3>
+                    <div class="command">ls -la</div>
+                    <div class="result">
+                        <h4>Doit contenir :</h4>
+                        <ul>
+                            <li>📁 srcs/ (tous les fichiers de configuration)</li>
+                            <li>📄 Makefile (à la racine)</li>
+                            <li>📄 docker-compose.yml (dans srcs/)</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="check-item">
+                    <h3>README.md<span class="badge critical">OBLIGATOIRE</span></h3>
+                    <div class="command">cat README.md | head -20</div>
+                    <div class="result">
+                        <h4>Première ligne doit être :</h4>
+                        <div class="code-block">*This project has been created as part of 42 by &lt;login&gt;*</div>
+                        <h4>Sections obligatoires :</h4>
+                        <ul>
+                            <li>Description</li>
+                            <li>Instructions</li>
+                            <li>Resources</li>
+                            <li>Explication de l'utilisation de l'IA (si utilisée)</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="check-item">
+                    <h3>USER_DOC.md et DEV_DOC.md<span class="badge critical">OBLIGATOIRE</span></h3>
+                    <div class="command">ls -la | grep DOC</div>
+                    <div class="result">
+                        <h4>Doivent exister :</h4>
+                        <ul>
+                            <li><strong>USER_DOC.md :</strong> Instructions pour utilisateur final (démarrage, accès site, gestion identifiants)</li>
+                            <li><strong>DEV_DOC.md :</strong> Instructions développeur (prérequis, setup, commandes Docker, persistance)</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="check-item">
+                    <h3>Vérifier docker-compose.yml<span class="badge critical">OBLIGATOIRE</span></h3>
+                    <div class="command">cat srcs/docker-compose.yml</div>
+                    <div class="warning">
+                        <strong>INTERDIT :</strong>
+                        <ul>
+                            <li>❌ network: host</li>
+                            <li>❌ links:</li>
+                        </ul>
+                    </div>
+                    <div class="success">
+                        <strong>OBLIGATOIRE :</strong>
+                        <ul>
+                            <li>✅ networks: (doit être présent)</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 2: Docker -->
+            <div class="section">
+                <h2 style="color: #1e3c72; margin-bottom: 20px;">Configuration Docker</h2>
+
+                <div class="check-item">
+                    <h3>Vérifier les Dockerfiles<span class="badge critical">OBLIGATOIRE</span></h3>
+                    <div class="command">find srcs -name "Dockerfile" -exec echo {} \; -exec cat {} \;</div>
+                    <div class="result">
+                        <h4>Chaque service doit avoir son Dockerfile :</h4>
+                        <ul>
+                            <li>srcs/requirements/nginx/Dockerfile</li>
+                            <li>srcs/requirements/wordpress/Dockerfile</li>
+                            <li>srcs/requirements/mariadb/Dockerfile</li>
+                        </ul>
+                    </div>
+                    <div class="warning">
+                        <strong>Vérifications critiques :</strong>
+                        <ul>
+                            <li>❌ Pas de "tail -f" dans ENTRYPOINT</li>
+                            <li>❌ Pas de commandes en arrière-plan (nginx & bash)</li>
+                            <li>❌ Pas de "sleep infinity"</li>
+                            <li>❌ Pas de "--link" dans les commandes</li>
+                            <li>✅ FROM alpine:3.19 ou FROM debian:bullseye (avant-dernière version stable)</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="check-item">
+                    <h3>Vérifier qu'aucune image n'est pull depuis DockerHub</h3>
+                    <div class="command">grep -r "FROM" srcs/requirements/*/Dockerfile</div>
+                    <div class="result">
+                        <h4>Autorisé seulement :</h4>
+                        <ul>
+                            <li>FROM alpine:X.X.X</li>
+                            <li>FROM debian:XXXXX</li>
+                        </ul>
+                        <p><strong>Interdit :</strong> nginx:latest, wordpress:latest, mariadb:latest, etc.</p>
+                    </div>
+                </div>
+
+                <div class="check-item">
+                    <h3>Lancer le projet avec Makefile</h3>
+                    <div class="command">make</div>
+                    <div class="result">
+                        <h4>Doit :</h4>
+                        <ul>
+                            <li>Créer les répertoires de volumes si nécessaire</li>
+                            <li>Lancer docker-compose up --build</li>
+                            <li>Construire toutes les images</li>
+                            <li>Démarrer tous les conteneurs</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="check-item">
+                    <h3>Vérifier les conteneurs actifs</h3>
+                    <div class="command">docker-compose ps</div>
+                    <div class="result">
+                        <h4>Doit afficher 3 conteneurs en état "Up" :</h4>
+                        <div class="code-block">NAME                   STATUS
+nginx                  Up
+wordpress              Up
+mariadb                Up</div>
+                    </div>
+                </div>
+
+                <div class="check-item">
+                    <h3>Vérifier le réseau Docker</h3>
+                    <div class="command">docker network ls</div>
+                    <div class="result">
+                        <h4>Doit contenir un réseau custom :</h4>
+                        <p>Exemple : inception_inception-network</p>
+                    </div>
+                    <div class="command">docker network inspect &lt;nom_du_réseau&gt;</div>
+                    <div class="result">
+                        <h4>Doit afficher les 3 conteneurs connectés</h4>
+                    </div>
+                </div>
+
+                <div class="check-item">
+                    <h3>Vérifier les noms des images</h3>
+                    <div class="command">docker images</div>
+                    <div class="result">
+                        <h4>Les noms doivent correspondre aux services :</h4>
+                        <ul>
+                            <li>nginx</li>
+                            <li>wordpress</li>
+                            <li>mariadb</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 3: NGINX -->
+            <div class="section">
+                <h2 style="color: #1e3c72; margin-bottom: 20px;">NGINX avec SSL/TLS</h2>
+
+                <div class="check-item">
+                    <h3>Vérifier le Dockerfile NGINX</h3>
+                    <div class="command">cat srcs/requirements/nginx/Dockerfile</div>
+                    <div class="result">
+                        <h4>Doit contenir :</h4>
+                        <ul>
+                            <li>Installation de nginx</li>
+                            <li>Installation d'openssl pour les certificats</li>
+                            <li>Configuration SSL/TLS</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="check-item">
+                    <h3>Vérifier que le port 80 est inaccessible</h3>
+                    <div class="command">curl http://login.42.fr</div>
+                    <div class="result">
+                        <h4>Doit échouer :</h4>
+                        <div class="code-block">curl: (7) Failed to connect to login.42.fr port 80</div>
+                    </div>
+                </div>
+
+                <div class="check-item">
+                    <h3>Vérifier l'accès HTTPS (port 443)</h3>
+                    <div class="command">curl -k https://login.42.fr</div>
+                    <div class="result">
+                        <h4>Doit retourner la page WordPress</h4>
+                        <p>L'option -k ignore l'avertissement du certificat auto-signé</p>
+                    </div>
+                </div>
+
+                <div class="check-item">
+                    <h3>Accéder au site dans le navigateur</h3>
+                    <div class="explanation">
+                        <strong>URL :</strong> https://login.42.fr
+                        <ul>
+                            <li>Remplacez "login" par votre login 42</li>
+                            <li>Un avertissement de sécurité peut apparaître (certificat auto-signé)</li>
+                            <li>Cliquez sur "Avancé" puis "Accepter le risque"</li>
+                            <li>Vous devez voir la page WordPress, PAS la page d'installation</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="check-item">
+                    <h3>Vérifier le certificat SSL/TLS</h3>
+                    <div class="explanation">
+                        <strong>Dans le navigateur :</strong>
+                        <ul>
+                            <li>Cliquez sur le cadenas à côté de l'URL</li>
+                            <li>Afficher les informations du certificat</li>
+                            <li>Vérifier que c'est TLS v1.2 ou TLS v1.3</li>
+                        </ul>
+                    </div>
+                    <div class="command">openssl s_client -connect login.42.fr:443 -tls1_2</div>
+                    <div class="result">
+                        <h4>Doit afficher des informations sur le certificat SSL</h4>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 4: WordPress -->
+            <div class="section">
+                <h2 style="color: #1e3c72; margin-bottom: 20px;">WordPress avec php-fpm</h2>
+
+                <div class="check-item">
+                    <h3>Vérifier le Dockerfile WordPress</h3>
+                    <div class="command">cat srcs/requirements/wordpress/Dockerfile</div>
+                    <div class="warning">
+                        <strong>INTERDIT :</strong> Pas de NGINX dans ce Dockerfile
+                    </div>
+                    <div class="result">
+                        <h4>Doit contenir :</h4>
+                        <ul>
+                            <li>Installation de PHP-FPM</li>
+                            <li>Installation de WordPress</li>
+                            <li>Configuration de la connexion MariaDB</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="check-item">
+                    <h3>Vérifier le conteneur WordPress</h3>
+                    <div class="command">docker-compose ps wordpress</div>
+                    <div class="result">
+                        <h4>Statut doit être : Up</h4>
+                    </div>
+                </div>
+
+                <div class="check-item">
+                    <h3>Vérifier le volume WordPress</h3>
+                    <div class="command">docker volume ls</div>
+                    <div class="result">
+                        <h4>Doit contenir un volume WordPress</h4>
+                    </div>
+                    <div class="command">docker volume inspect &lt;nom_volume_wordpress&gt;</div>
+                    <div class="result">
+                        <h4>Mountpoint doit contenir :</h4>
+                        <div class="code-block">/home/login/data/wordpress</div>
+                        <p>Remplacez "login" par votre login 42</p>
+                    </div>
+                </div>
+
+                <div class="check-item">
+                    <h3>Tester les fonctionnalités WordPress</h3>
+                    <div class="explanation">
+                        <strong>1. Ajouter un commentaire :</strong>
+                        <ul>
+                            <li>Ouvrir https://login.42.fr</li>
+                            <li>Se connecter avec un utilisateur WordPress (pas admin)</li>
+                            <li>Ajouter un commentaire sur un article</li>
+                            <li>Vérifier que le commentaire apparaît</li>
+                        </ul>
+
+                        <strong>2. Tableau de bord Admin :</strong>
+                        <ul>
+                            <li>Se connecter avec le compte administrateur</li>
+                            <li><strong>Important :</strong> Le nom d'utilisateur admin NE DOIT PAS contenir "admin" ou "Admin"</li>
+                            <li>Exemples interdits : admin, administrator, Admin-login, admin-123</li>
+                            <li>Éditer une page</li>
+                            <li>Vérifier que les modifications sont visibles sur le site</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 5: MariaDB -->
+            <div class="section">
+                <h2 style="color: #1e3c72; margin-bottom: 20px;">MariaDB et son Volume</h2>
+
+                <div class="check-item">
+                    <h3>Vérifier le Dockerfile MariaDB</h3>
+                    <div class="command">cat srcs/requirements/mariadb/Dockerfile</div>
+                    <div class="warning">
+                        <strong>INTERDIT :</strong> Pas de NGINX dans ce Dockerfile
+                    </div>
+                    <div class="result">
+                        <h4>Doit contenir :</h4>
+                        <ul>
+                            <li>Installation de MariaDB</li>
+                            <li>Configuration de la base de données</li>
+                            <li>Création des utilisateurs</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="check-item">
+                    <h3>Vérifier le conteneur MariaDB</h3>
+                    <div class="command">docker-compose ps mariadb</div>
+                    <div class="result">
+                        <h4>Statut doit être : Up</h4>
+                    </div>
+                </div>
+
+                <div class="check-item">
+                    <h3>Vérifier le volume MariaDB</h3>
+                    <div class="command">docker volume ls</div>
+                    <div class="result">
+                        <h4>Doit contenir un volume MariaDB</h4>
+                    </div>
+                    <div class="command">docker volume inspect &lt;nom_volume_mariadb&gt;</div>
+                    <div class="result">
+                        <h4>Mountpoint doit contenir :</h4>
+                        <div class="code-block">/home/login/data/mariadb</div>
+                        <p>Remplacez "login" par votre login 42</p>
+                    </div>
+                </div>
+
+                <div class="check-item">
+                    <h3>Se connecter à la base de données</h3>
+                    <div class="command">docker-compose exec mariadb mysql -u root -p</div>
+                    <div class="result">
+                        <h4>Entrez le mot de passe root défini dans .env</h4>
+                    </div>
+                    <div class="command">SHOW DATABASES;</div>
+                    <div class="result">
+                        <h4>Doit afficher :</h4>
+                        <div class="code-block">+--------------------+
+| Database           |
++--------------------+
+| information_schema |
+| wordpress          |
+| mysql              |
+| performance_schema |
++--------------------+</div>
+                    </div>
+                    <div class="command">USE wordpress; SHOW TABLES;</div>
+                    <div class="result">
+                        <h4>Doit afficher les tables WordPress</h4>
+                        <p>La base de données NE DOIT PAS être vide</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 6: Persistence -->
+            <div class="section">
+                <h2 style="color: #1e3c72; margin-bottom: 20px;">Test de Persistance</h2>
+
+                <div class="check-item">
+                    <h3>Étape 1 : Faire des modifications</h3>
+                    <div class="explanation">
+                        <ul>
+                            <li>Éditer une page WordPress</li>
+                            <li>Ajouter un article</li>
+                            <li>Modifier le thème</li>
+                            <li>Noter les changements effectués</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="check-item">
+                    <h3>Étape 2 : Redémarrer la machine virtuelle</h3>
+                    <div class="command">sudo reboot</div>
+                    <div class="result">
+                        <h4>Attendre le redémarrage complet</h4>
+                    </div>
+                </div>
+
+                <div class="check-item">
+                    <h3>Étape 3 : Relancer le projet</h3>
+                    <div class="command">make</div>
+                    <div class="result">
+                        <h4>Les conteneurs redémarrent</h4>
+                    </div>
+                </div>
+
+                <div class="check-item">
+                    <h3>Étape 4 : Vérifier la persistance</h3>
+                    <div class="explanation">
+                        <strong>Vérifications :</strong>
+                        <ul>
+                            <li>✅ Ouvrir https://login.42.fr</li>
+                            <li>✅ Toutes les modifications doivent être présentes</li>
+                            <li>✅ Les utilisateurs WordPress existent toujours</li>
+                            <li>✅ La base de données contient toutes les données</li>
+                            <li>✅ Le site fonctionne normalement</li>
+                        </ul>
+                    </div>
+                    <div class="warning">
+                        <strong>Si les données sont perdues, le projet ÉCHOUE !</strong>
+                    </div>
+                </div>
+
+                <div class="check-item">
+                    <h3>Test de modification de configuration</h3>
+                    <div class="explanation">
+                        <strong>Le correcteur va demander une modification :</strong>
+                        <ul>
+                            <li>Exemple : changer le port de NGINX de 443 à 8443</li>
+                            <li>Modifier docker-compose.yml ou les fichiers de config</li>
+                            <li>Rebuild et restart : <code>make re</code></li>
+                            <li>Le service doit fonctionner avec la nouvelle configuration</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>💡 <strong>Conseil :</strong> Testez chaque section dans l'ordre pour une évaluation complète</p>
+            <p style="margin-top: 10px; opacity: 0.8;">Bonne chance pour votre évaluation Inception ! 🚀</p>
+            <p style="margin-top: 20px; opacity: 1; color:darkgray">fifa © | 2026 tous droits réservés</p>
+        </div>
+    </div>
+
+    <script>
+        function showSection(index) {
+            const sections = document.querySelectorAll('.section');
+            const tabs = document.querySelectorAll('.tab');
+            
+            sections.forEach(s => s.classList.remove('active'));
+            tabs.forEach(t => t.classList.remove('active'));
+            
+            sections[index].classList.add('active');
+            tabs[index].classList.add('active');
+        }
+    </script>
+</body>
+</html>
